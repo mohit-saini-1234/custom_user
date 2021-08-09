@@ -1,3 +1,6 @@
+from rest_framework.permissions import BasePermission
+
+
 EMAIL_BACKEND ='django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
@@ -8,3 +11,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 url_api = "(<a href =http://127.0.0.1:8000/set_pass/?Email={{DATA}}>Click Here To Chnage Password</a>)"
+
+
+
+class AdminRequired(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.role == "Admin"
+    
+class ManagerRequired(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.role == "Manager"

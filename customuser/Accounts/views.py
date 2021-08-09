@@ -7,7 +7,8 @@ from rest_framework.decorators import APIView
 from rest_framework import status
 from Accounts.models import MyUser
 from django.contrib.auth import get_user_model 
-from rest_framework.permissions import IsAuthenticated , IsAdminUser
+from customuser.utils import AdminRequired , ManagerRequired 
+from rest_framework.permissions import IsAuthenticated 
 from django.core.mail import BadHeaderError, send_mail
 from django.http import HttpResponse, HttpResponseRedirect
 from customuser.utils import EMAIL_HOST_USER , url_api
@@ -34,12 +35,15 @@ class UseRegister(APIView):
         email=request.data.get("email")
         if MyUser.objects.filter(email=email).exists():
             return Response("email exist")
-        phone_number=request.data.get("phone_already number")
+        phone_number=request.data.get("phone_number")
         if MyUser.objects.filter(phone_number=phone_number).exists():
             return Response("phone_number already exist")
+        check_role= MyUser.objects.filter(role="Admin").count()
         role=request.data.get("role")
-        if role =="Admin" or role=="Manager":
+        if check_role>0 and role =="Admin" :
             return Response("User Can't Use Administration Role")
+        if role =="Manager":
+            return Response("User Can't Use Manager Role")
         
         user= MyUser.objects.create_user(
             role=request.data.get("role"),
@@ -158,21 +162,35 @@ class TempPassword(APIView):
         return Response(str(user))
     
     
-class DeleteUserView(APIView):
-    permission_classes = (IsAuthenticated,)
+class DeleteUserAdmin(APIView):
+    permission_classes = (IsAuthenticated,AdminRequired)
     def delete(self, request , pk):
-        role = self.request.user.role
-        if role =="Admin" :
-            user = self.request.get(pk=pk)
-            user.delete()
-            return Response({
+        user = self.request.get(pk=pk)
+        if user is None:
+            return Response("user not valid")
+        
+        user.delete()
+        return Response({
                             'status': 'success',
                             'code': status.HTTP_200_OK,
                             'message': 'delete updated successfully',
                         })
-        return Response({"unauthorised"},status=403)
-    
-    
+        
+class DeleteUserManager(APIView):
+    permission_classes = (IsAuthenticated,ManagerRequired)
+    def delete(self, request , pk):
+        user = self.request.get(pk=pk)
+        if user is None:
+            return Response("user not valid")
+        if user.role =="Admin":
+            return Response("You Can't Delete Admin")
+        user.delete()
+        return Response({
+                            'status': 'success',
+                            'code': status.HTTP_200_OK,
+                            'message': 'delete updated successfully',
+                        })
+        
 class UpdateUserView(APIView):
     permission_classes = [IsAuthenticated]
     def put(self, request):
@@ -191,21 +209,16 @@ class UpdateUserView(APIView):
 
 
 class AssignUserRole(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, AdminRequired,]
     def put(self, request, pk):
-        role = self.request.user.role
-        if role =="Admin":
-            user = MyUser.objects.get(pk=pk)
-            check_role = self.request.user.role
-            print("##########",check_role)
-            if check_role=="Manager":
-                return Response("already Manager")
-            serializer = AssignRoleSerializer(user,data=self.request.data)
-            if serializer.is_valid():
-                serializer.save()
+        role_value=request.data.get("role")
+        user = MyUser.objects.get(pk=pk)
+        serializer = AssignRoleSerializer(user,data=self.request.data)
+        if serializer.is_valid():
+            serializer.save()
             return Response({
                             'status': 'success',
-                            'message': "{{user}}assign as Manager" ,
+                            'message': "__"+str(user)+"__assign as__"+str(role_value)+"__" 
                         })
         else:
             return Response("Role Assign Criteria Not Valid")

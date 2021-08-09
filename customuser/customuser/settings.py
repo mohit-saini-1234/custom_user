@@ -32,6 +32,7 @@ AUTH_USER_MODEL = 'Accounts.MyUser'
 
 INSTALLED_APPS = [
     'Accounts',
+    'Usertask',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -58,7 +59,8 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     )
 }
-ROOT_URLCONF = 'Accounts.urls'
+
+ROOT_URLCONF ='customuser.urls' 
 
 TEMPLATES = [
     {

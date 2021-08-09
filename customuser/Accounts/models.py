@@ -29,7 +29,7 @@ class MyUser(AbstractBaseUser):
     first_name = models.CharField(max_length=40, )
     last_name = models.CharField(max_length=40, )
     password = models.CharField(max_length=40, )
-    phone_number = models.IntegerField(max_length=10, unique=True)
+    phone_number = models.IntegerField(unique=True)
     address = models.CharField(max_length=40, )
     objects = MyUserManager()
     REQUIRED_FIELDS = ['__all__']
