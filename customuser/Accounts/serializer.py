@@ -10,7 +10,7 @@ class UserSerializered(serializers.ModelSerializer):
     
        
             return MyUser.objects.create(**validated_data)
-        
+   
 class ChangePasswordSerializer(serializers.Serializer):
     model = MyUser
 
