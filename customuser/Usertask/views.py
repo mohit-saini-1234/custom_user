@@ -34,15 +34,15 @@ class TaskListAdmin(APIView):
     permission_classes = (IsAuthenticated,AdminRequired)
     def get(self , request):
         user = self.request.user
-        admin = MyUser.objects.get(username=user)
-        todo_task = Task.objects.filter(creator_ID=admin)
+        # admin = MyUser.objects.get(username=user) # remove this
+        todo_task = Task.objects.filter(creator_ID=user)
         serializer = TaskSerializer(todo_task, many=True)
         return Response(serializer.data)
 
     def post(self , request):
         title = request.data.get("title")
-        if Task.objects.filter(title=title).exists():
-            return Response("task already exists")
+        # if Task.objects.filter(title=title).exists(): # remove this..
+        #     return Response("task already exists")
         serializer = TaskSerializer(data=request.data)
         if serializer.is_valid():
             user= request.user
@@ -55,15 +55,15 @@ class TaskListManager(APIView):
     permission_classes = (IsAuthenticated,ManagerRequired)
     def get(self , request):
         user = self.request.user
-        Manager = MyUser.objects.get(username=user)
-        todo_task = Task.objects.filter(creator_ID=Manager)
+        # Manager = MyUser.objects.get(username=user) # remove 
+        todo_task = Task.objects.filter(creator_ID=user)
         serializer = TaskSerializer(todo_task, many=True)
         return Response(serializer.data)
 
     def post(self , request):
         title = request.data.get("title")
-        if Task.objects.filter(title=title).exists():
-            return Response("task already exists")
+        # if Task.objects.filter(title=title).exists(): # remove
+        #     return Response("task already exists")
         serializer = TaskSerializer(data=request.data)
         if serializer.is_valid():
             user= request.user
@@ -132,7 +132,7 @@ class TaskDetailManager(APIView):
         
     def delete(self, request, pk, format=None):
         try:
-            task = Task.objects.get(pk=pk)
+            task = Task.objects.get(pk=pk) 
             task.delete()
             return Response({
                     'status': 'success',
@@ -212,7 +212,6 @@ class TaskAssignGet(APIView):
 
 class TaskInfo(APIView):
     def get(self, request, pk, format=None):
-
         log_task = Task.objects.get(pk=pk)
         serializer = TaskSerializer(log_task)
         return Response(serializer.data)
@@ -220,13 +219,11 @@ class TaskInfo(APIView):
 
 class BulkDeleteTask(APIView):
     permission_classes = (IsAuthenticated,AdminRequired)
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         delete_ids = request.data.get("delete_ids")
-        ID=[x for x in delete_ids]
-        for i in ID:
-            check=Task.objects.filter(pk=i).delete()
+        Task.objects.filter(pk__in=delete_ids).delete()
         return Response("All task deleted")
-
+        
 class BulkAddTaskAdmin(APIView):
     permission_classes = (IsAuthenticated,AdminRequired)
     def post(self, request,):
@@ -234,11 +231,10 @@ class BulkAddTaskAdmin(APIView):
         for i in task:
             serializer = TaskSerializer(data=i)
             if serializer.is_valid():
-                title = serializer.validated_data["title"]
-                if Task.objects.filter(title=title).exists():
-                    return Response("task _"+str(title)+"_already exists")
                 user = request.user
                 serializer.save(creator_ID=user,Creator_username=user)
+            else:
+                return Response("Task is already exist or Not valid ", status=400)
         return Response("Tasks Created Successfully")
 
 class BulkAddTaskManager(APIView):
@@ -248,9 +244,8 @@ class BulkAddTaskManager(APIView):
         for i in task:
             serializer = TaskSerializer(data=i)
             if serializer.is_valid():
-                title = serializer.validated_data["title"]
-                if Task.objects.filter(title=title).exists():
-                    return Response("task _"+str(title)+"_already exists")
                 user = request.user
                 serializer.save(creator_ID=user,Creator_username=user)
+            else:
+                return Response("Task is already exist or Not valid ", status=400)
         return Response("Tasks Created Successfully")

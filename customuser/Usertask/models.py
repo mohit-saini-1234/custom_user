@@ -7,13 +7,13 @@ class Task(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     Creator_username = models.CharField(max_length=100, null = True,default="", blank=False)
     creator_ID = models.ForeignKey(MyUser,related_name='Created', on_delete=models.CASCADE,null=True,blank=True)
-    title = models.CharField(max_length=100, blank=False)
+    title = models.CharField(max_length=100, unique=True,blank=False)
     description = models.TextField()
     def __str__(self , request):
         return self.user.username
     
 class TaskUser(models.Model):
-    taskID= models.CharField(max_length=100, blank=False)
+    taskID= models.ForeignKey(Task,null=True,blank=True, on_delete=models.CASCADE)
     assignor_username= models.CharField(max_length=100, null=True,blank=True)
     assignee_username= models.CharField(max_length=100,null=True,blank=True)
     assignee_Email =  models.EmailField(max_length=254, null=False, blank=False)

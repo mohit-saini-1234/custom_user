@@ -2,9 +2,9 @@ from django.db import models
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser
 )
-    
+from phonenumber_field.modelfields import PhoneNumberField
 class MyUserManager(BaseUserManager):
-    def create_user(self, email, username,role,first_name, last_name, phone_number,address, password=None):
+    def create_user(self, email, username,role,first_name, last_name, phone,address, password=None):
         if not email:
             raise ValueError('Users must have an email address')
 
@@ -14,7 +14,7 @@ class MyUserManager(BaseUserManager):
             role=role,
             first_name=first_name,
             last_name=last_name,
-            phone_number=phone_number,
+            phone=phone,
             address=address,
         )
 
@@ -26,10 +26,10 @@ class MyUser(AbstractBaseUser):
     role = models.CharField(max_length=20, blank=True, default='user' )
     email = models.EmailField(max_length=40, unique=True , error_messages={'unique':"This email has already been registered."})
     username = models.CharField(max_length=40, unique=True)
-    first_name = models.CharField(max_length=40, )
-    last_name = models.CharField(max_length=40, )
+    first_name = models.CharField(max_length=40 )
+    last_name = models.CharField(max_length=40)
     password = models.CharField(max_length=40, )
-    phone_number = models.IntegerField(unique=True)
+    phone =PhoneNumberField(max_length=13,null=False, blank=False, default=None,region='IN')
     address = models.CharField(max_length=40, )
     objects = MyUserManager()
     REQUIRED_FIELDS = ['__all__']
