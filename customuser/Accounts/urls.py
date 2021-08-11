@@ -5,7 +5,7 @@ from Accounts.views import UseRegister ,UserProfile ,UpdateUserView,DeleteUserAd
 
 
 urlpatterns = [
-    url(r'^reg/$', UseRegister.as_view()),
+    url(r'^register/$', UseRegister.as_view()),
     url(r'^profile/$', UserProfile.as_view()),
     url(r'^forgot_password/$', ForgotPassword.as_view()),
     url(r'^login/$', UserLogin.as_view()),

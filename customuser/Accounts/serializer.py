@@ -4,13 +4,21 @@ from Accounts.models import MyUser
 class UserSerializered(serializers.ModelSerializer):
     class Meta:
         model = MyUser
-        fields = '__all__'
         
+        fields = '__all__'
+     
         def create(self, validated_data):
-    
-       
             return MyUser.objects.create(**validated_data)
-   
+        
+        def update(self, instance, validated_data):
+            instance.username = validated_data.get('username', instance.username)
+            instance.email = validated_data.get('eamil', instance.email)
+            instance.first_name = validated_data.get('first_name', instance.first_name)
+            instance.last_name = validated_data.get('last_name', instance.last_name)
+            instance.phone = validated_data.get('phone', instance.phone)
+            instance.address = validated_data.get('address', instance.address)
+            instance.save()
+            return instance
 class ChangePasswordSerializer(serializers.Serializer):
     model = MyUser
 
@@ -20,23 +28,6 @@ class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True)
     confirm_new_password = serializers.CharField(required=True)
-    
-    
-class UpdateSerializer(serializers.Serializer):
-    model = MyUser
-    username = serializers.CharField(required=False)
-    first_name = serializers.CharField(required=False)
-    last_name = serializers.CharField(required=False)
-    phone_number = serializers.CharField(required=False)
-    address = serializers.CharField()
-    def update(self, instance, validated_data):
-        instance.username = validated_data.get('username', instance.username)
-        instance.first_name = validated_data.get('first_name', instance.first_name)
-        instance.last_name = validated_data.get('last_name', instance.last_name)
-        instance.phone_number = validated_data.get('phone_number', instance.phone_number)
-        instance.address = validated_data.get('address', instance.address)
-        instance.save()
-        return instance
     
 class AssignRoleSerializer(serializers.Serializer):
     model = MyUser

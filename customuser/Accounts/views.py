@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from Accounts.serializer import UserSerializered ,ChangePasswordSerializer , AssignRoleSerializer,UpdateSerializer
+from Accounts.serializer import UserSerializered ,ChangePasswordSerializer , AssignRoleSerializer
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 from rest_framework.response import Response
@@ -35,9 +35,9 @@ class UseRegister(APIView):
         email=request.data.get("email")
         if MyUser.objects.filter(email=email).exists():
             return Response("email exist")
-        phone_number=request.data.get("phone_number")
-        if MyUser.objects.filter(phone_number=phone_number).exists():
-            return Response("phone_number already exist")
+        phone=request.data.get("phone")
+        if MyUser.objects.filter(phone=phone).exists():
+            return Response("phone already exist")
         check_role= MyUser.objects.filter(role="Admin").count()
         role=request.data.get("role")
         if check_role>0 and role =="Admin" :
@@ -52,7 +52,7 @@ class UseRegister(APIView):
             first_name=request.data.get("first_name"),
             last_name=request.data.get("last_name"),
             password=request.data.get("password"),
-            phone_number=request.data.get("phone_number"),
+            phone=request.data.get("phone"),
             address=request.data.get("address"))
         user.save()
         if user is not None:
@@ -165,47 +165,55 @@ class TempPassword(APIView):
 class DeleteUserAdmin(APIView):
     permission_classes = (IsAuthenticated,AdminRequired)
     def delete(self, request , pk):
-        user = self.request.get(pk=pk)
-        if user is None:
-            return Response("user not valid")
-        
-        user.delete()
-        return Response({
+        try:
+            user = MyUser.objects.get(pk=pk)
+            if user is None:
+                return Response("user not valid")
+            user.delete()
+            return Response({
                             'status': 'success',
                             'code': status.HTTP_200_OK,
                             'message': 'delete updated successfully',
                         })
-        
+        except MyUser.DoesNotExist:
+            return Response("user not found ",status=404)
 class DeleteUserManager(APIView):
     permission_classes = (IsAuthenticated,ManagerRequired)
     def delete(self, request , pk):
-        user = self.request.get(pk=pk)
-        if user is None:
-            return Response("user not valid")
-        if user.role =="Admin":
-            return Response("You Can't Delete Admin")
-        user.delete()
-        return Response({
+        try:
+            user = MyUser.objects.get(pk=pk)
+            if user.role=="Admin" or user.role=="Manager":
+                return Response({"Unauthorised":"Can't delete Admin or Manager"})
+            if user is None:
+                return Response("user not valid")
+            user.delete()
+            return Response({
                             'status': 'success',
                             'code': status.HTTP_200_OK,
                             'message': 'delete updated successfully',
                         })
+        except MyUser.DoesNotExist:
+            return Response("user not found ",status=404)
         
 class UpdateUserView(APIView):
     permission_classes = [IsAuthenticated]
-    def put(self, request):
-        log_username = self.request.user
-        serializer = UpdateSerializer(log_username,data=self.request.data)
+    def patch(self, request):
+        user = self.request.user
+        serializer = UserSerializered(user,data=request.data,partial=True)
         username=request.data.get("username")
         if MyUser.objects.filter(username=username).exists():
             return Response("username already exists")
-        phone_number=request.data.get("phone_number")
-        if MyUser.objects.filter(phone_number=phone_number).exists():
-            return Response("phone_number already exists")
+        phone=request.data.get("phone")
+        if MyUser.objects.filter(phone=phone).exists():
+            return Response("phone already exists")
+        email=request.data.get("email")
+        if MyUser.objects.filter(email=email).exists():
+            return Response("email already exists")
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response({"Not Valid": ["BAD_REQUEST"]}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"Not Valid": ["BAD_REQUEST"]}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class AssignUserRole(APIView):
