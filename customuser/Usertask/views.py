@@ -34,15 +34,12 @@ class TaskListAdmin(APIView):
     permission_classes = (IsAuthenticated,AdminRequired)
     def get(self , request):
         user = self.request.user
-        # admin = MyUser.objects.get(username=user) # remove this
         todo_task = Task.objects.filter(creator_ID=user)
         serializer = TaskSerializer(todo_task, many=True)
         return Response(serializer.data)
 
     def post(self , request):
         title = request.data.get("title")
-        # if Task.objects.filter(title=title).exists(): # remove this..
-        #     return Response("task already exists")
         serializer = TaskSerializer(data=request.data)
         if serializer.is_valid():
             user= request.user
@@ -55,15 +52,12 @@ class TaskListManager(APIView):
     permission_classes = (IsAuthenticated,ManagerRequired)
     def get(self , request):
         user = self.request.user
-        # Manager = MyUser.objects.get(username=user) # remove 
         todo_task = Task.objects.filter(creator_ID=user)
         serializer = TaskSerializer(todo_task, many=True)
         return Response(serializer.data)
 
     def post(self , request):
         title = request.data.get("title")
-        # if Task.objects.filter(title=title).exists(): # remove
-        #     return Response("task already exists")
         serializer = TaskSerializer(data=request.data)
         if serializer.is_valid():
             user= request.user
