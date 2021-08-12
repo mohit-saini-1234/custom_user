@@ -201,19 +201,12 @@ class UpdateUserView(APIView):
         user = self.request.user
         serializer = UserSerializered(user,data=request.data,partial=True)
         username=request.data.get("username")
-        if MyUser.objects.filter(username=username).exists():
-            return Response("username already exists")
-        phone=request.data.get("phone")
-        if MyUser.objects.filter(phone=phone).exists():
-            return Response("phone already exists")
-        email=request.data.get("email")
-        if MyUser.objects.filter(email=email).exists():
-            return Response("email already exists")
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         else:
-            return Response({"Not Valid": ["BAD_REQUEST"]}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=400)
+            
 
 
 class AssignUserRole(APIView):
